@@ -1,1 +1,211 @@
 
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Yılbaşı Çekilişi 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e53935" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top, #ffebee 0, #1b2735 55%, #000 100%);
+      color: #fff;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .card {
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 16px;
+      padding: 20px 18px 24px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+    }
+    h2 {
+      margin: 16px 0 8px;
+      font-size: 1.1rem;
+    }
+    p {
+      margin: 4px 0;
+      font-size: 0.95rem;
+    }
+    .highlight {
+      font-size: 1.4rem;
+      margin-top: 12px;
+    }
+    .highlight span {
+      font-weight: 700;
+      color: #ffeb3b;
+    }
+    textarea {
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.85rem;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+    .info {
+      font-size: 0.8rem;
+      opacity: 0.85;
+      margin-top: 6px;
+    }
+    .done {
+      margin-top: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #a5d6a7;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎄 Yılbaşı Çekilişi 2025 🎁</h1>
+    <p>Zincirli hediye çekilişi. Bu linki <strong>sırayla</strong> açın.</p>
+
+    <div id="result" class="highlight"></div>
+
+    <div id="nextBox" style="margin-top: 14px;"></div>
+
+    <p class="info">
+      Aynı linki yeniden açsan bile sana çıkan kişi değişmez.<br />
+      Yeni linki sadece sıradaki kişiye gönder.
+    </p>
+  </div>
+
+  <script>
+    // Sabit isim listesi (15 kişi)
+    const initialNames = [
+      "Onur",
+      "Tuğçe",
+      "Atlas",
+      "Özercan",
+      "Seda",
+      "Mustafa",
+      "İlknur",
+      "Gülnur",
+      "İlter",
+      "İlaynur",
+      "Delfin",
+      "Gülay",
+      "Recep",
+      "Beren",
+      "Kayra"
+    ];
+
+    // URL parametrelerini oku
+    const params = new URLSearchParams(window.location.search);
+    const leftParam = params.get("left");
+    const mineParam = params.get("mine");
+
+    function parseList(str) {
+      try {
+        return JSON.parse(str);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Kalan isim listesi (yoksa ilk açan kişi)
+    let remainingList = leftParam ? parseList(leftParam) : initialNames.slice();
+    if (!Array.isArray(remainingList) || remainingList.length === 0) {
+      remainingList = initialNames.slice();
+    }
+
+    const resultDiv = document.getElementById("result");
+    const nextBox = document.getElementById("nextBox");
+
+    let myPerson = mineParam ? decodeURIComponent(mineParam) : null;
+
+    if (!myPerson) {
+      // Bu kişi için ilk kez açılıyorsa random kişi seç
+      const randomIndex = Math.floor(Math.random() * remainingList.length);
+      myPerson = remainingList[randomIndex];
+
+      // Bir sonraki kişi için "kalanlar" listesinden seçileni çıkar
+      const nextList = remainingList.slice();
+      nextList.splice(randomIndex, 1);
+
+      // Sıradaki kişiye gidecek yeni link
+      let nextLinkText = "";
+      if (nextList.length > 0) {
+        const nextURL =
+          window.location.origin +
+          window.location.pathname +
+          "?left=" +
+          encodeURIComponent(JSON.stringify(nextList));
+        nextLinkText = nextURL;
+      }
+
+      // Mevcut sayfanın URL'sine sadece benim kişimi işaretle (yeniden açsam aynı kalsın)
+      const newURL =
+        window.location.pathname +
+        "?mine=" +
+        encodeURIComponent(myPerson) +
+        "&left=" +
+        encodeURIComponent(JSON.stringify(remainingList));
+
+      window.history.replaceState(null, "", newURL);
+
+      // Ekrana yaz
+      resultDiv.innerHTML = `Sana çıkan kişi: <span>${myPerson}</span> 🎁`;
+
+      if (nextList.length > 0) {
+        nextBox.innerHTML =
+          "<h2>📩 Sıradaki kişiye göndereceğin link:</h2>" +
+          "<textarea readonly>" +
+          nextLinkText +
+          "</textarea>";
+      } else {
+        nextBox.innerHTML =
+          "<p class='done'>🎉 Son kişiydin, çekiliş tamamlandı!</p>";
+      }
+    } else {
+      // Bu link zaten kullanılmış, sadece sonucu göster
+      resultDiv.innerHTML = `Sana çıkan kişi: <span>${myPerson}</span> 🎁`;
+
+      // Bu durumda da sıradaki kişiye giden link (halen URL'deki left'e göre)
+      const nextList = remainingList.slice();
+      if (nextList.length > 0) {
+        const nextURL =
+          window.location.origin +
+          window.location.pathname +
+          "?left=" +
+          encodeURIComponent(JSON.stringify(nextList));
+        nextBox.innerHTML =
+          "<h2>📩 Sıradaki kişiye göndereceğin link:</h2>" +
+          "<textarea readonly>" +
+          nextURL +
+          "</textarea>";
+      } else {
+        nextBox.innerHTML =
+          "<p class='done'>🎉 Son kişiydin, çekiliş tamamlandı!</p>";
+      }
+    }
+
+    // PWA service worker kaydı
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("sw.js")
+          .catch((err) => console.log("Service worker hatası:", err));
+      });
+    }
+  </script>
+</body>
+</html>
